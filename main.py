@@ -17,35 +17,48 @@ model = Net()  # Initialize your model
 model.trainModel(train_set)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+epsilon = 0.2  # Example epsilon value
 
-epsilon = 1  # Example epsilon value
+num_iterations = 5  # Set the number of iterations
+iteration_counter = 0  # Initialize counter for iterations
 
-# Iterate over the test set
-i = 0
-index = 10
 for images, labels in test_set:
-    if i == index:
-        # Send the images and labels to the device
-        images, labels = images.to(device), labels.to(device)
+    images, labels = images.to(device), labels.to(device)
 
-        # Generate adversarial example using FGSM attack for each image
-        perturbed_images = model.fgsm_attack(images, epsilon, labels)
+    # Generate adversarial example using FGSM attack for each image
+    for i in range(images.size(0)):
+        original_image, gradient_sign, perturbed_image = model.fgsm_attack(images[i:i+1], epsilon, labels[i:i+1])
 
-        # Print the original and perturbed images
-        for j in range(len(images)):
-            original_image = images[j].cpu().detach().numpy().squeeze()
-            perturbed_image = perturbed_images[j].cpu().detach().numpy().squeeze()
+        # Convert tensors to numpy arrays for visualization
+        original_image_np = original_image.squeeze().detach().cpu().numpy()
+        gradient_sign_np = gradient_sign.squeeze().detach().cpu().numpy()
+        perturbed_image_np = perturbed_image.squeeze().detach().cpu().numpy()
 
-            plt.figure(figsize=(5, 2))
-            plt.subplot(1, 2, 1)
-            plt.imshow(original_image, cmap='gray')
-            plt.title(f'Original - Label: {labels[j].item()}')
+        # Plot the original image
+        plt.figure()
+        plt.subplot(1, 3, 1)
+        plt.imshow(original_image_np, cmap='gray')
+        plt.title('Original Image')
 
-            plt.subplot(1, 2, 2)
-            plt.imshow(perturbed_image, cmap='gray')
-            plt.title('Perturbed')
+        # Plot the gradient sign
+        plt.subplot(1, 3, 2)
+        plt.imshow(gradient_sign_np, cmap='gray')
+        plt.title('Gradient Sign')
 
-            plt.show()
-        # Now you can use perturbed_images for further analysis or visualization
+        # Plot the perturbed image
+        plt.subplot(1, 3, 3)
+        plt.imshow(perturbed_image_np, cmap='gray')
+        plt.title('Perturbed Image')
+
+        plt.show()
+
+        # Increment the iteration counter
+        iteration_counter += 1
+
+        # Check if the desired number of iterations is reached
+        if iteration_counter >= num_iterations:
+            break
+
+    # Check if the desired number of iterations is reached
+    if iteration_counter >= num_iterations:
         break
-    i += 1

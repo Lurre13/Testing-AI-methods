@@ -130,6 +130,6 @@ class Net(nn.Module):
         # Clip the perturbed image to ensure it stays within the valid range [0, 1]
         perturbed_image = torch.clamp(perturbed_image, 0, 1)
 
-        # Return the perturbed image
-        return perturbed_image
+        # Return the original image, gradient sign, and perturbed image
+        return image, torch.sign(data_grad), perturbed_image
 
