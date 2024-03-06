@@ -13,12 +13,17 @@ class Net(nn.Module):
         self.fc3 = nn.Linear(64, 64)
         self.fc4 = nn.Linear(64, 10)  # 10 as output because we have 10 different classifications 0-9
 
-    def forward(self, v):  # Pass it through the network
-        v = Func.relu(self.fc1(v))  # F.relu(): Activacion function
+    def forward(self, v):
+        # Flatten the input image tensor
+        v = v.view(-1, 28 * 28)
+
+        # Pass the flattened input through the network
+        v = Func.relu(self.fc1(v))
         v = Func.relu(self.fc2(v))
         v = Func.relu(self.fc3(v))
         v = self.fc4(v)
         return Func.log_softmax(v, dim=1)
+
 
     def trainModel(self, training_data):
         loss = 0
@@ -68,3 +73,63 @@ class Net(nn.Module):
 
         accuracy = 100 * correct / total
         print(f'Accuracy on the test set: {accuracy:.2f}%')
+
+    def perform_fgsm_attack(self, input_image, true_label, epsilon):
+        self.eval()  # Set the model to evaluation mode
+        input_image.requires_grad = True  # Enable gradient calculation for the input image
+
+        # Forward pass to get the model's prediction
+        output = self(input_image)
+
+        # Calculate the loss using the true label
+        loss = torch.nn.functional.nll_loss(output, true_label)
+
+        # Zero the gradients
+        self.zero_grad()
+
+        # Backpropagate the loss
+        loss.backward()
+
+        # Calculate the sign of the gradient of the loss with respect to the input image
+        sign_grad = torch.sign(input_image.grad)
+
+        # Create the perturbed image using the sign of the gradient and the epsilon value
+        perturbed_image = input_image + epsilon * sign_grad
+
+        # Clip the perturbed image to ensure it stays within the valid range [0, 1]
+        perturbed_image = torch.clamp(perturbed_image, 0, 1)
+
+        return perturbed_image
+
+    # FGSM attack code
+    def fgsm_attack(self, image, epsilon, target):
+        # Set the model in evaluation mode
+        self.eval()
+        image.requires_grad = True
+
+        # Forward pass to get the model's prediction
+        output = self(image)
+
+        # Calculate the loss
+        loss = Func.nll_loss(output, target)
+
+        # Zero all existing gradients
+        self.zero_grad()
+
+        self.train()
+
+        # Calculate gradients of model in backward pass
+        loss.backward()
+
+        # Collect the gradient of the loss w.r.t the input image
+        data_grad = image.grad.data
+
+        # Create the perturbed image using the sign of the gradient and the epsilon value
+        perturbed_image = image + epsilon * torch.sign(data_grad)
+
+        # Clip the perturbed image to ensure it stays within the valid range [0, 1]
+        perturbed_image = torch.clamp(perturbed_image, 0, 1)
+
+        # Return the perturbed image
+        return perturbed_image
+

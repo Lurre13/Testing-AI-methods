@@ -13,13 +13,39 @@ test = datasets.MNIST("", train=True, download=False, transform=transforms.Compo
 
 train_set = torch.utils.data.DataLoader(train, batch_size=10, shuffle=True)
 test_set = torch.utils.data.DataLoader(test, batch_size=10, shuffle=True)
-net = Net()
+model = Net()  # Initialize your model
+model.trainModel(train_set)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-print(net)
 
-net.trainModel(train_set)
-#net.evaluate_model(test_set)
+epsilon = 1  # Example epsilon value
 
+# Iterate over the test set
 i = 0
-for i in range(0, 4):
-    net.show_prediction(test_set, 1)
+index = 10
+for images, labels in test_set:
+    if i == index:
+        # Send the images and labels to the device
+        images, labels = images.to(device), labels.to(device)
+
+        # Generate adversarial example using FGSM attack for each image
+        perturbed_images = model.fgsm_attack(images, epsilon, labels)
+
+        # Print the original and perturbed images
+        for j in range(len(images)):
+            original_image = images[j].cpu().detach().numpy().squeeze()
+            perturbed_image = perturbed_images[j].cpu().detach().numpy().squeeze()
+
+            plt.figure(figsize=(5, 2))
+            plt.subplot(1, 2, 1)
+            plt.imshow(original_image, cmap='gray')
+            plt.title(f'Original - Label: {labels[j].item()}')
+
+            plt.subplot(1, 2, 2)
+            plt.imshow(perturbed_image, cmap='gray')
+            plt.title('Perturbed')
+
+            plt.show()
+        # Now you can use perturbed_images for further analysis or visualization
+        break
+    i += 1
