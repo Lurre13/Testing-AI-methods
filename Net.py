@@ -74,33 +74,6 @@ class Net(nn.Module):
         accuracy = 100 * correct / total
         print(f'Accuracy on the test set: {accuracy:.2f}%')
 
-    def perform_fgsm_attack(self, input_image, true_label, epsilon):
-        self.eval()  # Set the model to evaluation mode
-        input_image.requires_grad = True  # Enable gradient calculation for the input image
-
-        # Forward pass to get the model's prediction
-        output = self(input_image)
-
-        # Calculate the loss using the true label
-        loss = torch.nn.functional.nll_loss(output, true_label)
-
-        # Zero the gradients
-        self.zero_grad()
-
-        # Backpropagate the loss
-        loss.backward()
-
-        # Calculate the sign of the gradient of the loss with respect to the input image
-        sign_grad = torch.sign(input_image.grad)
-
-        # Create the perturbed image using the sign of the gradient and the epsilon value
-        perturbed_image = input_image + epsilon * sign_grad
-
-        # Clip the perturbed image to ensure it stays within the valid range [0, 1]
-        perturbed_image = torch.clamp(perturbed_image, 0, 1)
-
-        return perturbed_image
-
     # FGSM attack code
     def fgsm_attack(self, image, epsilon, target):
         # Set the model in evaluation mode
