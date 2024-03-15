@@ -8,10 +8,10 @@ from matplotlib import pyplot as plt
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc1 = nn.Linear(28 * 28, 64)  # Linear:FULLY CONNECTED NETWORK 28*28 image pixels, 64 whatever
-        self.fc2 = nn.Linear(64, 64)  # 64 from fc1 sent to input at fc2 and so on
-        self.fc3 = nn.Linear(64, 64)
-        self.fc4 = nn.Linear(64, 10)  # 10 as output because we have 10 different classifications 0-9
+        self.fc1 = nn.Linear(28 * 28, 300)  # Linear:FULLY CONNECTED NETWORK 28*28 image pixels, 64 whatever
+        self.fc2 = nn.Linear(300, 100)  # 64 from fc1 sent to input at fc2 and so on
+        self.fc3 = nn.Linear(100, 100)
+        self.fc4 = nn.Linear(100, 10)  # 10 as output because we have 10 different classifications 0-9
 
     def forward(self, v):
         # Flatten the input image tensor
@@ -24,17 +24,16 @@ class Net(nn.Module):
         v = self.fc4(v)
         return Func.log_softmax(v, dim=1)
 
-
     def trainModel(self, training_data):
         loss = 0
         optimizer = optim.Adam(self.parameters(), lr=0.001)
 
-        epochs = 3
+        epochs = 1
 
         for epoch in range(epochs):
             for data in training_data:
                 X, y = data
-                self.zero_grad()
+                optimizer.zero_grad()
                 output = self(X.view(-1, 28 * 28))
                 loss = Func.nll_loss(output, y)
                 loss.backward()
@@ -105,4 +104,3 @@ class Net(nn.Module):
 
         # Return the original image, gradient sign, and perturbed image
         return image, torch.sign(data_grad), perturbed_image
-

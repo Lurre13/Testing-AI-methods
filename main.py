@@ -11,8 +11,8 @@ from Net import Net
 train = datasets.MNIST("", train=True, download=False, transform=transforms.Compose([transforms.ToTensor()]))
 test = datasets.MNIST("", train=False, download=False, transform=transforms.Compose([transforms.ToTensor()]))
 
-train_set = torch.utils.data.DataLoader(train, batch_size=10, shuffle=True)
-test_set = torch.utils.data.DataLoader(test, batch_size=10, shuffle=True)
+train_set = torch.utils.data.DataLoader(train, batch_size=32, shuffle=True)
+test_set = torch.utils.data.DataLoader(test, batch_size=32, shuffle=False)
 model = Net()  # Initialize your model
 model.trainModel(train_set)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -51,7 +51,7 @@ for images, labels in test_set:
         plt.title('Original Image')
 
         # Add text for predicted class and probability
-        plt.text(0, 36,
+        plt.text(-5, 36,
                  f'Predicted: {predicted_class_original.item()}, Probability: {predicted_prob_original.item() * 100:.2f}%',
                  fontsize=10, ha='left')
 
@@ -66,10 +66,10 @@ for images, labels in test_set:
         plt.title('Perturbed Image')
 
         # Add text for predicted class and probability
-        plt.text(0, 36,
+        plt.text(-5, 36,
                  f'Predicted: {predicted_class_perturbed.item()}, Probability: {predicted_prob_perturbed.item() * 100:.2f}%',
                  fontsize=10, ha='left')
-
+        plt.subplots_adjust(left=0.05, wspace=0.1)
         plt.show()
 
         # Increment the iteration counter
