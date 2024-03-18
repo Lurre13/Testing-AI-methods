@@ -10,6 +10,24 @@ import seaborn as sns
 import numpy as np
 
 
+def print_heatmap(predictions):
+    # Create an empty matrix to store counts
+    heatmap_data = np.zeros((10, 10))
+
+    # Count occurrences of each pair
+    for pair in predictions:
+        correct, predicted = pair
+        heatmap_data[correct][predicted] += 1
+
+    # Create the heatmap
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(heatmap_data, annot=True, cmap='YlGnBu', fmt='g', linewidths=.5)
+    plt.xlabel('Predicted')
+    plt.ylabel('Correct')
+    plt.title('Confusion Matrix Heatmap')
+    plt.show()
+
+
 train = datasets.MNIST("", train=True, download=False, transform=transforms.Compose([transforms.ToTensor()]))
 test = datasets.MNIST("", train=False, download=False, transform=transforms.Compose([transforms.ToTensor()]))
 
@@ -19,9 +37,9 @@ model = Net()  # Initialize your model
 model.trainModel(train_set)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-epsilon = 0.1  # Example epsilon value
+epsilon = 0.25  # Example epsilon value
 correct_label = ""
-num_iterations = len(test_set)  # Set the number of iterations
+num_iterations = 20  # Set the number of iterations
 iteration_counter = 0  # Initialize counter for iterations
 prediction_list = []
 print(num_iterations)
@@ -49,7 +67,7 @@ for images, labels in test_set:
         probabilities_perturbed = torch.softmax(output_perturbed, dim=1)
         predicted_prob_perturbed, predicted_class_perturbed = torch.max(probabilities_perturbed, 1)
 
-        """        # Plot the original image
+        # Plot the original image
         plt.figure()
         plt.subplot(2, 3, 1)
         plt.imshow(original_image_np, cmap='gray')
@@ -76,8 +94,8 @@ for images, labels in test_set:
                  f'Probability: {predicted_prob_perturbed.item() * 100:.2f}%'
                  f' \n\nEpsilon Value: {epsilon}', fontsize=10, ha='left')
         plt.subplots_adjust(left=0.05, wspace=0.3)
-        #plt.show()
-        """
+        plt.show()
+
         prediction_list.append([correct_label.item(), predicted_class_perturbed.item()])
 
         # Increment the iteration counter
@@ -91,19 +109,5 @@ for images, labels in test_set:
     if iteration_counter >= num_iterations:
         break
 
-print(prediction_list)
-# Create an empty matrix to store counts
-heatmap_data = np.zeros((10, 10))
 
-# Count occurrences of each pair
-for pair in prediction_list:
-    correct, predicted = pair
-    heatmap_data[correct][predicted] += 1
-
-# Create the heatmap
-plt.figure(figsize=(8, 6))
-sns.heatmap(heatmap_data, annot=True, cmap='YlGnBu', fmt='g', linewidths=.5)
-plt.xlabel('Predicted')
-plt.ylabel('Correct')
-plt.title('Confusion Matrix Heatmap')
-plt.show()
+#print_heatmap(prediction_list)
