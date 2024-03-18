@@ -1,7 +1,7 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import torch.nn.functional as Func
+import torch.nn.functional as func
 from matplotlib import pyplot as plt
 
 
@@ -18,11 +18,11 @@ class Net(nn.Module):
         v = v.view(-1, 28 * 28)
 
         # Pass the flattened input through the network
-        v = Func.relu(self.fc1(v))
-        v = Func.relu(self.fc2(v))
-        v = Func.relu(self.fc3(v))
+        v = func.relu(self.fc1(v))
+        v = func.relu(self.fc2(v))
+        v = func.relu(self.fc3(v))
         v = self.fc4(v)
-        return Func.log_softmax(v, dim=1)
+        return func.log_softmax(v, dim=1)
 
     def trainModel(self, training_data):
         loss = 0
@@ -35,7 +35,7 @@ class Net(nn.Module):
                 X, y = data
                 optimizer.zero_grad()
                 output = self(X.view(-1, 28 * 28))
-                loss = Func.nll_loss(output, y)
+                loss = func.nll_loss(output, y)
                 loss.backward()
                 optimizer.step()
             print(loss)
@@ -83,7 +83,7 @@ class Net(nn.Module):
         output = self(image)
 
         # Calculate the loss
-        loss = Func.nll_loss(output, target)
+        loss = func.nll_loss(output, target)
 
         # Zero all existing gradients
         self.zero_grad()
@@ -104,3 +104,4 @@ class Net(nn.Module):
 
         # Return the original image, gradient sign, and perturbed image
         return image, torch.sign(data_grad), perturbed_image
+
